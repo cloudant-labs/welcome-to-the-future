@@ -5,13 +5,13 @@
 
 var async = require('async');
 
-module.exports = function (url, cb) {
-  async.applyEach(
+module.exports = function (opts, cb) {
+  async.applyEachSeries(
     [
       require('./databases'),
       require('./replications')
     ], 
-    url, 
+    opts, 
     function (err) {
       if (err) throw err;
       cb();

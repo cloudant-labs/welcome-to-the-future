@@ -5,15 +5,19 @@
 var nano = require('nano'),
     async = require('async');
 
-module.exports = function (url, cb) {
-  var instance = nano(url);
+module.exports = function (opts, cb) {
+  var instance = nano(opts.url);
 
   instance.db.list(function (err, dbs) {
     if (err) {
       cb(err);
     } else {
       var missing = [],
-          needed = ['base', 'master', '_replicator'];
+          needed = [
+            [opts.prefix, 'base'].join('-'),
+            [opts.prefix, 'master'].join('-'),
+            '_replicator'
+          ];
 
       needed.forEach(function (db) {
         if (dbs.indexOf(db) === -1) {

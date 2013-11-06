@@ -51,4 +51,7 @@ function start_app () {
 }
 
 // perform startup checks before starting the application
-init(admin_url, start_app);
+init({
+    url: admin_url,
+    prefix: 'wttf'
+}, start_app);
