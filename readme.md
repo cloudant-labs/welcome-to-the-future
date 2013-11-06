@@ -20,10 +20,14 @@ Built with love, and [Express-Cloudant](http://express-cloudant.herokuapp.com/) 
 
 ### When a user visits the homepage...
 
+**In development**
+
 1. They see recent posts, sorted by a function like `created_date * votes`, so popular posts sort higher, but ultimately float down as they age.
 2. If an anonymous user tries to vote or post, they're prompted with a signup form.
 
 ### When a user signs up...
+
+**In development**
 
 1. Server adds that to a `_users` database. (If the user already exists, reject the signup)
 2. Server creates a database called `user_{username}`
@@ -31,6 +35,8 @@ Built with love, and [Express-Cloudant](http://express-cloudant.herokuapp.com/) 
 4. Server adds a doc to the `_replicator` database to continuously replicate the user's database to the `master` database.
 
 ### When a user adds a post...
+
+**In development**
 
 1. The user writes the `post` document to their `user_{username}` database.
 2. It gets replicated to the `master` database, where others can vote on it.
@@ -52,6 +58,8 @@ A `validate_doc_update` ensures that the document being inserted is up to spec. 
 * `text` cannot be empty.
 
 ### When a user casts a vote...
+
+**In development**
 
 1. The user writes the `vote` document to their `user_{username}` database.
 2. It gets replicated to the `master` database, where it affects the sorting of recent posts.
