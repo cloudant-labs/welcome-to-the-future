@@ -27,12 +27,11 @@ Built with love, and [Express-Cloudant](http://express-cloudant.herokuapp.com/) 
 
 ### When a user signs up...
 
-**In development**
-
 1. Server adds that to a `_users` database. (If the user already exists, reject the signup)
 2. Server creates a database called `user_{username}`
-3. Server adds a doc to the `_replicator` database to continuously replicate the `setup` database to the new user's database.
-4. Server adds a doc to the `_replicator` database to continuously replicate the user's database to the `master` database.
+3. Server sets the security on the database to give the user `_reader` and `_writer` permissions.
+4. Server adds a doc to the `_replicator` database to continuously replicate the `setup` database to the new user's database.
+5. Server adds a doc to the `_replicator` database to continuously replicate the user's database to the `master` database.
 
 ### When a user adds a post...
 
