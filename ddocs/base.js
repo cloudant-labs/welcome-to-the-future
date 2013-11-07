@@ -5,6 +5,22 @@ ddoc = {
     _id: '_design/queries',
     views: {
       // view code goes here
+      votes: {
+        map: function (doc) {
+          if (doc.type === 'vote') {
+            emit(doc.post, username);
+          }
+        },
+        reduce: '_count'
+      },
+      posts_by_user: {
+        map: function (doc) {
+          if (doc.type === 'post') {
+            emit(doc.user, doc._id);
+          }
+        },
+        reduce: '_count'
+      }
     },
     lists: {
       // list code goes here

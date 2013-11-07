@@ -35,8 +35,6 @@ Built with love, and [Express-Cloudant](http://express-cloudant.herokuapp.com/) 
 
 ### When a user adds a post...
 
-**In development**
-
 1. The user writes the `post` document to their `user_{username}` database.
 2. It gets replicated to the `master` database, where others can vote on it.
 
@@ -57,8 +55,6 @@ A `validate_doc_update` ensures that the document being inserted is up to spec. 
 * `text` cannot be empty.
 
 ### When a user casts a vote...
-
-**In development**
 
 1. The user writes the `vote` document to their `user_{username}` database.
 2. It gets replicated to the `master` database, where it affects the sorting of recent posts.
