@@ -58,7 +58,7 @@ ddoc = {
             throw({ 
               forbidden: 'User can only post as self: ' + [userCtx.name, newDoc.user].join(', ')
             });
-          } else if (new Date(newDoc.created_at).getTime() === NaN) {
+          } else if (new Date(newDoc.created_at).getTime().isNaN()) {
             throw({ 
               forbidden: 'Invalid date: ' + newDoc.created_at
             });
@@ -72,7 +72,6 @@ ddoc = {
           throw({
             forbidden: 'Unrecognized type'
           });
-          break;
       }
     },
     filters: {

@@ -1,3 +1,18 @@
+var init = require('./init'),
+    admin_url = [
+      "https://",
+      process.env.USERNAME,
+      ":",
+      process.env.PASSWORD,
+      "@",
+      process.env.USERNAME,
+      ".cloudant.com"
+    ].join(''),
+    opts = {
+      url: admin_url,
+      prefix: 'wttf'
+    };
+
 module.exports = function(grunt) {
 
   // Project configuration.
@@ -26,6 +41,7 @@ module.exports = function(grunt) {
           'assets/js/jquery.js',
           'assets/js/showdown.js',
           'assets/js/pouchdb.js',
+          'assets/js/angular.js',
           'assets/js/app.js'
         ],
         // the location of the resulting JS file
@@ -46,7 +62,10 @@ module.exports = function(grunt) {
         }
       }
     },
-    couchapp: require('./ddocs')
+    couchapp: require('./ddocs')(opts),
+    init: {
+      app: opts
+    }
   });
 
   // Load plugins
@@ -56,12 +75,20 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-contrib-cssmin');
   grunt.loadNpmTasks('grunt-couchapp');
 
+  grunt.registerMultiTask('init', 'Perform a series of checks in advance of application startup.', function () {
+    var done = this.async(),
+        opts = this.data;
+
+    init(opts, done);
+  });
+
   // Default task(s).
   grunt.registerTask('default', [
     'jshint',
     'concat',
     'uglify',
     'cssmin',
+    'init',
     'couchapp'
   ]);
 
