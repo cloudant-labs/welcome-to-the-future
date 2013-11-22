@@ -1,21 +1,17 @@
 angular.module('app', ['ngCookies', 'ngRoute'])
 .constant('md', new Showdown.converter())
 .constant('Pouch', new PouchDB('wttf'))
-.constant('Master', new PouchDB('wttf-master'))
 .constant('Proxy', '/proxy')
 .constant('Api', '/api')
-.factory('Promise', ['$q', '$rootScope', function ($q, $rootScope) {
-  var deferred = $q.defer();
+.factory('Master', ['Proxy', function (Proxy) {
+  var url = [
+        location.protocol,
+        '//',
+        location.host
+      ].join(''),
+      pouch = new PouchDB(url + Proxy + '/wttf-master');
 
-  return function(err, res) {
-    $rootScope.$apply(function() {
-      if (err) {
-        deferred.reject(err);
-      } else {
-        deferred.resolve(res);
-      }
-    });
-  };
+  return pouch;
 }])
 .factory('Auth', [
   '$http', '$cookieStore', 'Proxy', 'Api', 'Pouch', 'Master', 
@@ -57,8 +53,6 @@ angular.module('app', ['ngCookies', 'ngRoute'])
 
           Pouch.replicate.to(user_url, opts);
           Pouch.replicate.from(user_url, opts);
-          Master.replicate.to(master_url, opts);
-          Master.replicate.from(master_url, opts);
 
           currentUsername = username;
 
@@ -120,38 +114,40 @@ angular.module('app', ['ngCookies', 'ngRoute'])
         group: true,
         limit: 40
       }, function (err, res) {
-        if (err) throw err;
+        if (err) {
+          console.log(JSON.stringify(err));
+        } else {
+          var posts = {},
+              by_hots = [];
 
-        var posts = {},
-            by_hots = [];
+          res.rows.forEach(function (row) {
+            if (!posts[row.key[0]]) {
+              posts[row.key[0]] = {
+                _id: row.key[0]
+              };
+            }
+            if (row.key[1]) {
+              posts[row.key[0]].created_at = row.key[1];
+            } else {
+              posts[row.key[0]].votes = row.value;
+            }
+          });
 
-        res.rows.forEach(function (row) {
-          if (!posts[row.key[0]]) {
-            posts[row.key[0]] = {
-              _id: row.key[0]
-            };
-          }
-          if (row.key[1]) {
-            posts[row.key[0]].created_at = row.key[1];
-          } else {
-            posts[row.key[0]].votes = row.value;
-          }
-        });
+          Object.keys(posts).forEach(function (id) {
+            by_hots.push(posts[id]);
+          });
 
-        Object.keys(posts).forEach(function (id) {
-          by_hots.push(posts[id]);
-        });
+          by_hots = by_hots.sort(function (a, b) {
+            var a_hots = (a.votes || 1) * a.created_at,
+                b_hots = (b.votes || 1) * b.created_at;
 
-        by_hots = by_hots.sort(function (a, b) {
-          var a_hots = (a.votes || 1) * a.created_at,
-              b_hots = (b.votes || 1) * b.created_at;
+            return a_hots - b_hots;
+          });
 
-          return a_hots - b_hots;
-        });
-
-        $scope.$apply(function () {
-          $scope.posts = by_hots;
-        });
+          $scope.$apply(function () {
+            $scope.posts = by_hots;
+          });
+        }
       });
     }
 
@@ -159,7 +155,6 @@ angular.module('app', ['ngCookies', 'ngRoute'])
 
     Master.changes({
       continuous: true,
-      since: "now",
       onChange: getHot
     });
   }
@@ -172,15 +167,17 @@ angular.module('app', ['ngCookies', 'ngRoute'])
         include_docs: true,
         limit: 40
       }, function (err, res) {
-        if (err) throw err;
+        if (err) {
+          console.log(err);
+        } else {
+          var posts = res.rows.map(function (row) {
+            return row.doc;
+          });
 
-        var posts = res.rows.map(function (row) {
-          return row.doc;
-        });
-
-        $scope.$apply(function () {
-          $scope.posts = posts;
-        });
+          $scope.$apply(function () {
+            $scope.posts = posts;
+          }); 
+        }
       });
     }
 
@@ -188,7 +185,6 @@ angular.module('app', ['ngCookies', 'ngRoute'])
 
     Master.changes({
       continuous: true,
-      since: "now",
       onChange: getRecent
     });
   }
@@ -197,7 +193,7 @@ angular.module('app', ['ngCookies', 'ngRoute'])
   '$scope', 'Master', '$routeParams',
   function ($scope, Master, $routeParams) {
     Master.get($routeParams.id, function (err, res) {
-      if (err) throw err;
+      if (err) throw JSON.stringify(err);
 
       $scope.$apply(function () {
         $scope.post = res;
@@ -212,7 +208,7 @@ angular.module('app', ['ngCookies', 'ngRoute'])
       include_docs: true,
       limit: 40
     }, function (err, res) {
-      if (err) throw err;
+      if (err) throw JSON.stringify(err);
 
       var posts = res.rows.map(function (row) {
         return row.doc;
@@ -232,7 +228,7 @@ angular.module('app', ['ngCookies', 'ngRoute'])
       post.user = Auth.getUsername();
 
       Pouch.post(post, function (err, res) {
-        if (err) throw err;
+        if (err) throw JSON.stringify(err);
 
         $location.path('/profile');
       });
@@ -251,7 +247,7 @@ angular.module('app', ['ngCookies', 'ngRoute'])
 .config(['$routeProvider', '$locationProvider', function($routeProvider, $locationProvider){
   $routeProvider
   .when('/', {
-    templateUrl: 'index.html',
+    templateUrl: 'hot.html',
     controller: 'HotCtrl'
   })
   .when('/recent', {

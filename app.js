@@ -48,6 +48,9 @@ function start_app () {
   app.get('/', routes.index);
   app.get('/readme', require('./routes/readme'));
   require('./routes/api')(app, 'api', admin_url);
+  app.get(/(\w+)\.html/, function (req, res) {
+    res.render(req.params[0]);
+  });
 
   http.createServer(app).listen(app.get('port'), function(){
     console.log('Express server listening on port ' + app.get('port'));
