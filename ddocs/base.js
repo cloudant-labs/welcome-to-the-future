@@ -20,6 +20,23 @@ ddoc = {
           }
         },
         reduce: '_count'
+      },
+      recent: {
+        map: function (doc) {
+          if (doc.type === 'post') {
+            emit(doc.created_at, null);
+          }
+        }
+      },
+      hot: {
+        map: function (doc) {
+          if (doc.type === 'post') {
+            emit([doc._id, doc.created_at, doc], null);
+          } else if (doc.type === 'vote') {
+            emit([doc.post, 0], null);
+          }
+        },
+        reduce: '_count'
       }
     },
     lists: {

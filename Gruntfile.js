@@ -42,6 +42,8 @@ module.exports = function(grunt) {
           'assets/js/showdown.js',
           'assets/js/pouchdb.js',
           'assets/js/angular.js',
+          'assets/js/angular-cookies.js',
+          'assets/js/angular-route.js',
           'assets/js/app.js'
         ],
         // the location of the resulting JS file
