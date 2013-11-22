@@ -38,7 +38,6 @@ angular.module('app', [])
     templateUrl: 'signup.html',
     controller: 'SignupCtrl'
   })
-
   .otherwise({
     redirectTo: '/'
   });
