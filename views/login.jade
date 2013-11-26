@@ -1,0 +1,26 @@
+.row
+  .col-md-6
+    h1 Login
+    strong {{login_error}}
+    form#login
+      .form-group
+        label Username
+        input.form-control(type="text", ng-model="user.name")
+      .form-group
+        label Password
+        input.form-control(type="password", ng-model="user.password")
+      button.btn(ng-click="login(user)") Login
+  .col-md-6
+    h1 Signup
+    strong {{signup_error}}
+    form#login
+      .form-group
+        label Username
+        input.form-control(type="text", ng-model="user.name")
+      .form-group
+        label Password
+        input.form-control(type="password", ng-model="user.password")
+      .form-group
+        label Verify Password
+        input.form-control(type="password", ng-model="user.verify_password")
+      button.btn(ng-click="login(user)") Signup

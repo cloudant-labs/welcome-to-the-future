@@ -22,7 +22,7 @@ Built with love, and [Express-Cloudant](http://express-cloudant.herokuapp.com/) 
 
 **In development**
 
-1. They see recent posts, sorted by a function like `created_date * votes`, so popular posts sort higher, but ultimately float down as they age.
+1. They see recent posts, sorted by a function like `created_date * votes`, so popular posts sort higher, but ultimately float down as they age. (The specifics: The most recent 20 posts are sorted by votes * timestamp. TODO: Make it Reddit-like sorting, rather than this hogwash)
 2. If an anonymous user tries to vote or post, they're prompted with a signup form.
 
 ### When a user signs up...

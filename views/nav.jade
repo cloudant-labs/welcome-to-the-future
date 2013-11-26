@@ -1,0 +1,15 @@
+nav.navbar.navbar-default(role="navigation", ng-controller="NavCtrl")
+  .container
+    .col-md-12
+      ul.nav.navbar-nav
+        li
+          a(href="#/") Hot
+        li
+          a(href="#/recent") Recent
+        li
+          a(href="#/submit") Submit
+      ul.nav.navbar-nav.navbar-right
+        li(ng-show="authenticated")
+          a(href="#/profile") Profile
+        li(ng-hide="authenticated")
+          a(href="#/login") Login or Signup

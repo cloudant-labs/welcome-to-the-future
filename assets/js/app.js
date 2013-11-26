@@ -15,7 +15,7 @@ angular.module('app', ['ngCookies', 'ngRoute'])
 }])
 .factory('Auth', [
   '$http', '$cookieStore', 'Proxy', 'Api', 'Pouch', 'Master', 
-  function ($http, Proxy, Api, Pouch) {
+  function ($http, $cookieStore, Proxy, Api, Pouch, Master) {
     var currentUser = $cookieStore.get('AuthSession') || null,
         currentUsername = null;
 
@@ -98,9 +98,17 @@ angular.module('app', ['ngCookies', 'ngRoute'])
     };
   }
 ])
+.controller('NavCtrl', [
+  '$scope', 'Auth',
+  function ($scope, Auth) {
+    $scope.authenticated = Auth.isLoggedIn();
+  }
+])
 .controller('HotCtrl', [
   '$scope', 'Master',
   function ($scope, Master) {
+    $scope.title = "Hot Futures";
+
     function chunks (array, size) {
       var results = [];
       while (array.length) {
@@ -128,6 +136,7 @@ angular.module('app', ['ngCookies', 'ngRoute'])
             }
             if (row.key[1]) {
               posts[row.key[0]].created_at = row.key[1];
+              posts[row.key[0]].doc = row.key[2];
             } else {
               posts[row.key[0]].votes = row.value;
             }
@@ -142,6 +151,8 @@ angular.module('app', ['ngCookies', 'ngRoute'])
                 b_hots = (b.votes || 1) * b.created_at;
 
             return a_hots - b_hots;
+          }).map(function (row) {
+            return row.doc;
           });
 
           $scope.$apply(function () {
@@ -162,6 +173,8 @@ angular.module('app', ['ngCookies', 'ngRoute'])
 .controller('RecentCtrl', [
   '$scope', 'Master',
   function ($scope, Master) {
+    $scope.title = "Recent Futures";
+
     function getRecent () {
       Master.query('queries/recent', {
         include_docs: true,
@@ -223,9 +236,13 @@ angular.module('app', ['ngCookies', 'ngRoute'])
 .controller('SubmitCtrl', [
   '$scope', '$location', 'Pouch', 'Auth',
   function ($scope, $location, Pouch, Auth) {
-    $scope.submit = function () {
-      var post = $scope.post;
+    if (!Auth.isLoggedIn()) {
+      $location.path('/login');
+    }
+
+    $scope.submit = function (post) {
       post.user = Auth.getUsername();
+      post.created_at = new Date().getTime();
 
       Pouch.post(post, function (err, res) {
         if (err) throw JSON.stringify(err);
@@ -236,31 +253,102 @@ angular.module('app', ['ngCookies', 'ngRoute'])
   }
 ])
 .controller('LoginCtrl', [
-  '$scope', 'Auth', 
-  function ($scope, Auth) {
-    $scope.isLoggedIn = Auth.isLoggedIn;
-    $scope.login = Auth.login;
-    $scope.logout = Auth.logout;
-    $scope.signup = Auth.signup;
+  '$scope', 'Auth', '$location',
+  function ($scope, Auth, $location) {
+    $scope.login = function (user) {
+      Auth.login(user.username, user.password, function (err) {
+        if (err) {
+          $scope.$apply(function () {
+            $scope.login_error = JSON.stringify(err);
+          });
+        } else {
+          $location.path('/');
+        }
+      });
+    };
+    $scope.signup = function (user) {
+      if (user.password === user.verify_password) {
+        Auth.signup(user.username, user.password, function (err) {
+          if (err) {
+            $scope.$apply(function () {
+              $scope.signup_error = JSON.stringify(err);
+            });
+          } else {
+            $location.path('/'); 
+          }
+        });
+      }
+    };
+  }
+])
+.controller('UserCtrl', [
+  '$scope', '$location', 'Auth', 'Master', '$routeParams',
+  function ($scope, $location, Auth, Master, $routeParams) {
+    var username = $routeParams.username || Auth.getUsername();
+
+    if (username) {
+      $scope.title = username;
+
+      Master.query('queries/posts_by_user', {
+        include_docs: true,
+        key: username
+      }, function (err, res) {
+        if (err) throw JSON.stringify(err);
+
+        $scope.$apply(function () {
+          $scope.posts = res.rows.map(function (row) {
+            return row.doc;
+          });
+        });
+      });
+    } else {
+      $location.path('/login');
+    }
+  }
+])
+.controller('VoteCtrl', [
+  '$scope', '$location', 'Auth', 'Pouch', '$routeParams',
+  function ($scope, $location, Auth, Pouch, $routeParams) {
+    if (!Auth.isLoggedIn()) {
+      $location.path('/login');
+    } else {
+      Pouch.post({
+        type: 'vote',
+        user: Auth.getUsername(),
+        post: $routeParams.id
+      }, function (err) {
+        if (err) throw JSON.stringify(err);
+
+        // back from whence ye came!
+        history.back();
+      });
+    }
   }
 ])
 .config(['$routeProvider', '$locationProvider', function($routeProvider, $locationProvider){
   $routeProvider
   .when('/', {
-    templateUrl: 'hot.html',
+    templateUrl: 'list.html',
     controller: 'HotCtrl'
   })
   .when('/recent', {
-    templateUrl: 'recent.html',
+    templateUrl: 'list.html',
     controller: 'RecentCtrl'
   })
+  .when('/user/:username', {
+    templateUrl: 'list.html',
+    controller: 'UserCtrl'
+  })
   .when('/profile', {
-    templateUrl: 'profile.html',
-    controller: 'ProfileCtrl'
+    templateUrl: 'list.html',
+    controller: 'UserCtrl'
   })
   .when('/submit', {
     templateUrl: 'submit.html',
     controller: 'SubmitCtrl'
+  })
+  .when('/upvote/:id', {
+    controller: 'VoteCtrl'
   })
   .when('/post/:id', {
     templateUrl: 'post.html',

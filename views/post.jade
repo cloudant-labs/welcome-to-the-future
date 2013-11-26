@@ -1,0 +1,8 @@
+blockquote 
+  p {{post.text}}
+  small.pull-left 
+    span [{{post.votes}}]
+    a(href="#/upvote/{{post._id}}") +
+  small.pull-right 
+    a(href="#/profile/{{post.username}}") {{post.username}} 
+    span on {{post.created_at}}
