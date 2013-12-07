@@ -7,7 +7,7 @@ Like [My Life is Average](http://mylifeisaverage.com/), but for those moments of
     "Can you keep a secret?" they asked.
     I replied, "You, me, and the NSA makes three."
 
-[Check it out][demo] :D
+N.B.: EXPERIMENTAL. Coming soon.
 
 Built with love, and [Express-Cloudant](http://express-cloudant.herokuapp.com/) <3
 
